@@ -1,10 +1,11 @@
 package logger
 
-import "go.uber.org/zap"
-
-import "go.uber.org/zap/zapcore"
-
-import "os"
+import (
+	"go.uber.org/zap"
+	"go.uber.org/zap/zapcore"
+	"gopkg.in/natefinch/lumberjack.v2"
+	"os"
+)
 
 var _ LeveledLogger = &ZapLogger{}
 
@@ -13,16 +14,36 @@ type ZapLogger struct {
 	level  *zapcore.Level
 }
 
-func NewZapLogger(level LoggerLevel) *ZapLogger {
+func NewZapLogger(level LoggerLevel, env LoggerEnv) *ZapLogger {
 	_logger := &ZapLogger{}
 	zapLevel := zapcore.Level(level)
 
-	encoderConf := zap.NewProductionEncoderConfig()
-	zap.NewDevelopmentEncoderConfig()
-	encoderConf.EncodeTime = zapcore.RFC3339TimeEncoder
+	var (
+		encoderConf zapcore.EncoderConfig
+		encoder     zapcore.Encoder
+		syncer      zapcore.WriteSyncer
+	)
+	if env == Development {
+		//in development environment, logging in stdout
+		encoderConf = zap.NewDevelopmentEncoderConfig()
+		encoderConf.EncodeTime = zapcore.RFC3339TimeEncoder
+		encoder = zapcore.NewConsoleEncoder(encoderConf)
+		syncer = zapcore.AddSync(os.Stdout)
+	} else {
+		//in stage environment, logging in stdout and files
+		encoderConf = zap.NewProductionEncoderConfig()
+		encoderConf.EncodeTime = zapcore.RFC3339TimeEncoder
+		encoder = zapcore.NewJSONEncoder(encoderConf)
+		fLogger := &lumberjack.Logger{
+			Filename:   "./test.log",
+			MaxSize:    10,
+			MaxBackups: 5,
+			MaxAge:     30,
+			Compress:   false,
+		}
+		syncer = zapcore.AddSync(fLogger)
+	}
 
-	encoder := zapcore.NewJSONEncoder(encoderConf)
-	syncer := zapcore.AddSync(os.Stdout)
 	core := zapcore.NewCore(
 		encoder,
 		syncer,
@@ -32,12 +53,13 @@ func NewZapLogger(level LoggerLevel) *ZapLogger {
 	_logger.logger = zap.New(core,
 		zap.AddCaller(),
 		zap.AddCallerSkip(2),
-		//zap.AddStacktrace(zapLevel),
-	).Sugar()
+		zap.AddStacktrace(zapLevel),
+	).With().Sugar()
 
 	return _logger
 }
 func (l *ZapLogger) Debugf(format string, params ...interface{}) {
+	defer l.logger.Sync()
 	l.logger.Debugf(format, params...)
 }
 

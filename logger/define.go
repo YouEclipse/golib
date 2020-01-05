@@ -25,6 +25,7 @@ type LeveledLogger interface {
 }
 
 type LoggerLevel int8
+type LoggerEnv int8
 
 const (
 	DebugLevel LoggerLevel = iota - 1
@@ -32,4 +33,9 @@ const (
 	WarnLevel
 	ErrorLevel
 	FatalLevel
+)
+const (
+	Development LoggerEnv = 1 + iota
+	Stage
+	Production
 )

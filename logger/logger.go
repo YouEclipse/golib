@@ -8,7 +8,7 @@ func InitLogger() {
 	once := sync.Once{}
 	once.Do(
 		func() {
-			defalutLogger = NewZapLogger(DebugLevel)
+			defalutLogger = NewZapLogger(DebugLevel, Production)
 		},
 	)
 }
