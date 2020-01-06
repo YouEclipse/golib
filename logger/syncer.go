@@ -1,13 +1,13 @@
 package logger
 
-type ELKLoggerSyncer struct {
+type EFKLoggerSyncer struct {
+	//TODO
 }
 
-func (s *ELKLoggerSyncer) Sync() error {
+func (s *EFKLoggerSyncer) Sync() error {
 	return nil
 }
 
-func (s *ELKLoggerSyncer) Write(data []byte) error {
-
-	return nil
+func (s *EFKLoggerSyncer) Write(p []byte) (n int, err error) {
+	return 0, nil
 }

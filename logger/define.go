@@ -1,5 +1,11 @@
 package logger
 
+// LoggerLevel ...
+type Level int8
+
+// LoggerEnv ...
+type Env int8
+
 // LeveledLogger defined ther logger formats message according to format specifier
 // and writes to log with levels
 type LeveledLogger interface {
@@ -24,18 +30,22 @@ type LeveledLogger interface {
 	Fatal(v ...interface{})
 }
 
-type LoggerLevel int8
-type LoggerEnv int8
+type LoggerConfig struct {
+	Env   Env
+	Name  string
+	Level Level
+	Path  string
+}
 
 const (
-	DebugLevel LoggerLevel = iota - 1
+	DebugLevel Level = iota - 1
 	InfoLevel
 	WarnLevel
 	ErrorLevel
 	FatalLevel
 )
 const (
-	Development LoggerEnv = 1 + iota
+	Development Env = 1 + iota
 	Stage
 	Production
 )

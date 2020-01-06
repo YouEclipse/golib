@@ -5,7 +5,12 @@ import (
 )
 
 func init() {
-	InitLogger()
+	InitLogger(&LoggerConfig{
+		Path:  "./",
+		Env:   Development,
+		Name:  "tester",
+		Level: DebugLevel,
+	})
 }
 
 func TestDebugf(t *testing.T) {
