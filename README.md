@@ -1,2 +1,2 @@
 # golib
-my basic libiary for go
+my basic go libiary and builder docker image 

@@ -21,13 +21,12 @@ func NewZapLogger(cfg *LoggerConfig) *ZapLogger {
 
 	var (
 		encoderConf zapcore.EncoderConfig
-		encoder     zapcore.Encoder
-		syncer      zapcore.WriteSyncer
 		cores       = make([]zapcore.Core, 0)
 	)
 
 	encoderConf = zap.NewProductionEncoderConfig()
 	encoderConf.EncodeTime = zapcore.RFC3339TimeEncoder
+	encoderConf.EncodeLevel = zapcore.CapitalColorLevelEncoder
 	cores = append(cores, zapcore.NewCore(
 		zapcore.NewConsoleEncoder(encoderConf),
 		zapcore.AddSync(os.Stdout),
@@ -39,7 +38,6 @@ func NewZapLogger(cfg *LoggerConfig) *ZapLogger {
 		//so do nothing here
 	} else if cfg.Env == Stage {
 		//in stage environment, logging to stdout and files
-		encoder = zapcore.NewConsoleEncoder(encoderConf)
 		fLogger := &lumberjack.Logger{
 			Filename:   cfg.Path + cfg.Name + ".log",
 			MaxSize:    10,
@@ -47,19 +45,16 @@ func NewZapLogger(cfg *LoggerConfig) *ZapLogger {
 			MaxAge:     30,
 			Compress:   false,
 		}
-		syncer = zapcore.AddSync(fLogger)
 		cores = append(cores, zapcore.NewCore(
-			encoder,
-			syncer,
+			zapcore.NewConsoleEncoder(encoderConf),
+			zapcore.AddSync(fLogger),
 			zapcore.Level(zapLevel),
 		))
 	} else {
 		//in production environment, logging to stdout and efk-cluster
-		encoder = zapcore.NewJSONEncoder(encoderConf)
-		syncer = zapcore.AddSync(&EFKLoggerSyncer{})
 		cores = append(cores, zapcore.NewCore(
-			encoder,
-			syncer,
+			zapcore.NewJSONEncoder(encoderConf),
+			zapcore.AddSync(&EFKLoggerSyncer{}),
 			zapcore.Level(zapLevel),
 		))
 	}
