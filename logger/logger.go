@@ -1,14 +1,31 @@
 package logger
 
-import "sync"
+import (
+	"strings"
+	"sync"
+)
 
 var defalutLogger LeveledLogger
 
-func InitLogger() {
+func InitLogger(cfg *LoggerConfig) {
+	if cfg.Name == "" {
+		cfg.Name = "logger"
+	}
+	if cfg.Env <= 0 || cfg.Env > 3 {
+		cfg.Env = Development
+	}
+	if cfg.Path == "" {
+		cfg.Path = "/tmp/"
+	}
+
+	if !strings.HasSuffix(cfg.Path, "/") {
+		cfg.Path += "/"
+	}
+
 	once := sync.Once{}
 	once.Do(
 		func() {
-			defalutLogger = NewZapLogger(DebugLevel, Production)
+			defalutLogger = NewZapLogger(cfg)
 		},
 	)
 }
