@@ -2,6 +2,8 @@ package logger
 
 import (
 	"bytes"
+	"fmt"
+	"log"
 	"os"
 	"os/exec"
 	"testing"
@@ -133,14 +135,15 @@ func TestFatalf(t *testing.T) {
 		}
 	}
 	var outb, errb bytes.Buffer
+	for _,arg := os.Args[]
 
 	cmd := exec.Command(os.Args[0], "-test.run=TestFatalf")
 	cmd.Env = append(os.Environ(), "TEST_FATALF=1")
 	cmd.Stdout = &outb
 	cmd.Stderr = &errb
 	err := cmd.Run()
-	if e, ok := err.(*exec.ExitError); ok && e.ExitCode() == 1 {
-		t.Log(cmd.Stdout)
+	if e, ok := err.(*exec.ExitError); ok && !e.Success() {
+		fmt.Print(cmd.Stdout)
 		return
 	}
 
@@ -260,14 +263,15 @@ func TestFatal(t *testing.T) {
 	var outb, errb bytes.Buffer
 
 	cmd := exec.Command(os.Args[0], "-test.run=TestFatal")
+	//cmd.Args = append(cmd.Args, "-test.v=true")
 	cmd.Env = append(os.Environ(), "TEST_FATAL=1")
 	cmd.Stdout = &outb
 	cmd.Stderr = &errb
 	err := cmd.Run()
-	if e, ok := err.(*exec.ExitError); ok && e.ExitCode() == 1 {
-		t.Log(cmd.Stdout)
+	if e, ok := err.(*exec.ExitError); ok && !e.Success() {
+		fmt.Print(cmd.Stdout)
 		return
 	}
-
+	log.Fatal("")
 	t.Fatalf("process ran with err %v,output: \n%+s, want exit status 1", err, cmd.Stderr)
 }
